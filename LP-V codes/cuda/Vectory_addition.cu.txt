@@ -1,0 +1,123 @@
+---------------------------!nvcc --version
+
+to check the nvcc version.
+
+
+----------------------------%%writefile cuda_program.cu
+
+##The %%writefile magic command is typically used in Jupyter notebooks with IPython kernel. 
+When you use %%writefile followed by a filename and some code in a cell, it writes the contents of that cell to a file with the specified filename.
+
+
+#include <iostream>
+using namespace std;
+
+__global__ void add(int* A, int* B, int* C, int size) {
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (tid < size) {
+        C[tid] = A[tid] + B[tid];
+    }
+}
+
+
+void initialize(int* vector, int size) {
+    for (int i = 0; i < size; i++) {
+        vector[i] = rand() % 10;
+    }
+}
+
+void print(int* vector, int size) {
+    for (int i = 0; i < size; i++) {
+        cout << vector[i] << " ";
+    }
+    cout << endl;
+}
+
+int main() {
+    int N = 4;
+    int* A, * B, * C;
+
+    int vectorSize = N;
+    size_t vectorBytes = vectorSize * sizeof(int);
+
+    A = new int[vectorSize];
+    B = new int[vectorSize];
+    C = new int[vectorSize];
+
+    initialize(A, vectorSize);
+    initialize(B, vectorSize);
+
+    cout << "Vector A: ";
+    print(A, N);
+    cout << "Vector B: ";
+    print(B, N);
+
+    int* X, * Y, * Z;
+    cudaMalloc(&X, vectorBytes);
+    cudaMalloc(&Y, vectorBytes);
+    cudaMalloc(&Z, vectorBytes);
+
+    cudaMemcpy(X, A, vectorBytes, cudaMemcpyHostToDevice);
+    cudaMemcpy(Y, B, vectorBytes, cudaMemcpyHostToDevice);
+
+    int threadsPerBlock = 256;
+    int blocksPerGrid = (N + threadsPerBlock - 1) / threadsPerBlock;
+
+    add<<<blocksPerGrid, threadsPerBlock>>>(X, Y, Z, N);
+
+    cudaMemcpy(C, Z, vectorBytes, cudaMemcpyDeviceToHost);
+
+    cout << "Addition: ";
+    print(C, N);
+
+    delete[] A;
+    delete[] B;
+    delete[] C;
+
+    cudaFree(X);
+    cudaFree(Y);
+    cudaFree(Z);
+
+    return 0;
+}
+
+
+
+!nvcc --version
+
+The command `nvcc --version` is used to display the version of the NVIDIA CUDA Compiler (`nvcc`). It provides information about the version of CUDA installed on your system, which is helpful for compatibility checking and ensuring that you have the correct tools for CUDA development.
+
+%%writefile cuda_program.cu
+
+The %%writefile magic command is typically used in Jupyter notebooks with IPython kernel. 
+When you use %%writefile followed by a filename and some code in a cell, it writes the contents of that cell to a file with the specified filename.
+
+
+Writing cuda_program.cu
+
+
+CUDA (Compute Unified Device Architecture) is used to write programs that harness the computational power of NVIDIA GPUs for parallel processing tasks. It offers:
+
+Parallelism: Executes thousands of threads simultaneously.
+Performance: Provides speedups compared to CPU-based implementations.
+Massive Data Parallelism: Efficiently processes large datasets.
+GPU Acceleration: Offloads computations to accelerate certain algorithms.
+Access to GPU-specific Features: Utilizes specialized GPU features for optimization.
+Wide Adoption and Support: Well-documented and supported by a large community.
+Overall, CUDA enables developers to leverage GPU resources for high-performance computing tasks efficiently.
+
+-----------------------------!nvcc cuda_program.cu -o cuda_program
+
+The command nvcc cuda_program.cu -o cuda_program compiles a CUDA program (cuda_program.cu) into an executable file named cuda_program. It's used to translate CUDA code into machine code that can be executed on NVIDIA GPUs.
+
+--------------------------------!./cuda_program
+
+The command !./cuda_program is used to execute the compiled CUDA program named cuda_program in the current directory.
+
+
+
+
+
+
+

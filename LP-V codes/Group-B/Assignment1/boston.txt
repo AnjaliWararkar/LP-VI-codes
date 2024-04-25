@@ -1,0 +1,41 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.datasets import boston_housing
+from sklearn import preprocessing
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# Load the Boston Housing dataset
+(train_x, train_y), (test_x, test_y) = boston_housing.load_data()
+
+# Normalize the input features
+train_x = preprocessing.normalize(train_x)
+test_x = preprocessing.normalize(test_x)
+
+# Normalize the target variable
+scaler = preprocessing.StandardScaler()
+train_y = scaler.fit_transform(train_y.reshape(-1, 1)).flatten()
+test_y = scaler.transform(test_y.reshape(-1, 1)).flatten()
+
+# Define the model
+def HousePricePredictionModel():
+    model = Sequential()
+    model.add(Dense(128, activation='relu', input_shape=(train_x.shape[1],)))
+    model.add(Dense(64, activation='relu'))
+    model.add(Dense(32, activation='relu'))
+    model.add(Dense(1))
+    model.compile(optimizer='rmsprop', loss='mse', metrics=['mae'])
+    return model
+
+model = HousePricePredictionModel()
+
+# Define the number of epochs
+num_epochs = 100
+
+# Train the model
+history = model.fit(x=train_x, y=train_y, epochs=num_epochs, batch_size=1, verbose=1, validation_data=(test_x, test_y))
+
+# Predict on a new input
+test_input = np.array([[8.6540733e-05, 0.0, 0.0113392175, 0.0, 0.00112518247, 131.897603, 0.0753763011, 0.0130768051, 0.0109241016, 0.489399752, 0.0441333705, 0.867155186, 0.0175004108]], dtype=np.float32)  # Replace with your desired input
+predicted_output = scaler.inverse_transform(model.predict(test_input))
+print("Predicted output:", predicted_output)
